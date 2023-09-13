@@ -82,9 +82,6 @@ class MIMIC_new:
         dIcd = pd.concat([dIcdDiagnoses,dIcdProcedures], axis=0)
 
         noteevents = noteevents[(noteevents['CATEGORY']=='Discharge summary')]
-        #validIcd = list(dIcdDiagnoses['ICD9_CODE'].values)
-        #isValid = [icd in validIcd for icd in diagnosesIcd['ICD9_CODE']]
-        #diagnosesIcd = diagnosesIcd[isValid]
 
         out = pd.merge(noteevents[['HADM_ID','TEXT']].groupby('HADM_ID').agg(lambda x: ' <br> '.join(x.values)).reset_index(),icd[['HADM_ID','ICD9_CODE']],how='left').dropna()
         out = out.groupby(by=['HADM_ID','TEXT']).agg(lambda x: ';'.join(x.values)).reset_index()
@@ -98,10 +95,8 @@ class DataClass:
         self.minCount = minCount
         validSize *= 1.0/(1.0-testSize)
         # Open files and load data
-        print('Loading the data...')
         data = pd.read_csv(dataPath, usecols=['HADM_ID', 'TEXT','ICD9_CODE'])
         # Get word-splited notes and icd codes
-        print('Getting the word-splited notes and icd codes...')
         self.hadmId = data['HADM_ID'].values.tolist()
         NOTE,ICD = [term_pattern.findall(i) for i in tqdm(data['TEXT'])],list(data['ICD9_CODE'].values)
         self.rawNOTE = [i+["<EOS>"] for i in NOTE]
@@ -109,7 +104,6 @@ class DataClass:
         gc.collect()
         # Calculate/Loading the word count
         if not os.path.isfile("model/wordCount"):
-            print('Calculating the word count...')
             wordCount = Counter()
             for s in tqdm(NOTE):
                 wordCount += Counter(s)
@@ -117,7 +111,6 @@ class DataClass:
             pkl.dump(wordCount, f)
             f.close()
         else:
-            print('Loading the word count...')
             f = open("model/wordCount", 'rb')
             wordCount = pkl.load(f)
             f.close()
@@ -136,7 +129,7 @@ class DataClass:
         self.notes = [i+['<EOS>'] for i in NOTE]
         # Get the mapping variables for note-word and id
         print('Getting the mapping variables for note-word and id...')
-        self.nword2id,self.id2nword = {"<EOS>":0, "<UNK>":1}, ["<EOS>", "<UNK>"] #所有单词下标和不重复单词集
+        self.nword2id,self.id2nword = {"<EOS>":0, "<UNK>":1}, ["<EOS>", "<UNK>"] 
         cnt = 2
         for note in tqdm(self.notes):
             for w in note:
@@ -144,10 +137,10 @@ class DataClass:
                     self.nword2id[w] = cnt
                     self.id2nword.append(w)
                     cnt += 1
-        self.nwordNum = cnt  # 所有单词数量
+        self.nwordNum = cnt  
         # Get mapping variables for icd and id
         print('Getting the mapping variables for icd and id...')
-        self.icd2id,self.id2icd = {},[] # 所有icd下标和icd字符
+        self.icd2id,self.id2icd = {},[] 
         cnt,tmp = 0,[]
         for icds in tqdm(ICD):
             icds = icds.split(';')
@@ -156,9 +149,9 @@ class DataClass:
                     self.icd2id[icd] = cnt
                     self.id2icd.append(icd)
                     cnt += 1
-            tmp.append([self.icd2id[icd] for icd in icds]) # 一条记录的ICD下标
-        self.icdNum = cnt # 所有ICD数量
-        self.Lab = np.zeros((len(ICD),cnt), dtype='int32') #ICD记录长度和icd总数的0矩阵
+            tmp.append([self.icd2id[icd] for icd in icds]) 
+        self.icdNum = cnt 
+        self.Lab = np.zeros((len(ICD),cnt), dtype='int32')
         for i,icds in enumerate(tmp):
             self.Lab[i,icds] = 1
         if topICD>0:
@@ -208,12 +201,6 @@ class DataClass:
 
         self.classNum,self.vector = self.icdNum,{}
 
-    # def change_seed(self, seed=20201247, validSize=0.2, testSize=0.0):
-    #     restIdList,testIdList = train_test_split(range(self.totalSampleNum), test_size=testSize, random_state=seed) if testSize>0.0 else (list(range(self.totalSampleNum)),[])
-    #     trainIdList,validIdList = train_test_split(restIdList, test_size=validSize, random_state=seed) if validSize>0.0 else (restIdList,[])
-        
-    #     self.trainIdList,self.validIdList,self.testIdList = trainIdList,validIdList,testIdList
-    #     self.trainSampleNum,self.validSampleNum,self.testSampleNum = len(self.trainIdList),len(self.validIdList),len(self.testIdList)
 
     def vectorize(self, method="skipgram", noteFeaSize=320, titleFeaSize=192, window=5, sg=1, iters=10, batchWords=1000000,
                   noteCorpusPath=None, workers=8, loadCache=True, suf=""):
