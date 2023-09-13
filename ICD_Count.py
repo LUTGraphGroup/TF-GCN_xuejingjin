@@ -65,17 +65,8 @@ class ICD():
         self.ICD_valid_count_list.sort(key=takeSecond,reverse=True)
 
 
-
-
 if __name__ == "__main__":
     #print(train_test_split(range(100), test_size=0.1, random_state=1013))
     ICD = ICD()
     data = ICD.get_data(20)
     print(data[0],data[1],data[2])
-    # icd_list = []
-    # num_list = []
-    # for icd,num in data:
-    #     icd_list.append(icd)
-    #     num_list.append(num)
-    # plt.bar(icd_list, num_list,width=0.5, align='center', alpha=0.5)
-    # plt.show()
