@@ -22,9 +22,6 @@ doc_name_list = []
 doc_train_list = []
 doc_test_list = []
 
-print("程序开始运行...")
-
-print('Loading the data...')
 data = pd.read_csv('data.csv')
 
 
@@ -105,7 +102,6 @@ with open("stopwords.txt","r") as fp:
         stopwords.append(word)
     fp.close()
 
-print("分词...")
 for doc_words in tqdm(shuffle_doc_words_list):
     words = re.sub(r"[^A-Za-z]"," ",doc_words)
     words = words.strip().lower().split()
@@ -321,7 +317,7 @@ del y
 row_tx = []
 col_tx = []
 data_tx = []
-print("tx calc...")
+
 for i in tqdm(range(test_size)):
     doc_vec = np.array([0.0 for k in range(word_embeddings_dim)])
     doc_words = shuffle_doc_words_list[i + train_size]
@@ -344,7 +340,7 @@ for i in tqdm(range(test_size)):
 # tx = sp.csr_matrix((test_size, word_embeddings_dim), dtype=np.float32)
 tx = sp.csr_matrix((data_tx, (row_tx, col_tx)),
                    shape=(test_size, word_embeddings_dim))
-print(tx.shape)
+
 
 f = open("data/ind.ICD.tx", 'wb')
 joblib.dump(tx, f)
@@ -352,7 +348,6 @@ f.close()
 del tx
 
 ty = []
-print("ty calc...")
 for i in tqdm(range(test_size)):
 
     doc_meta = shuffle_doc_name_list[i + train_size]
@@ -364,7 +359,7 @@ for i in tqdm(range(test_size)):
     ty.append(one_hot)
 
 ty = np.array(ty)
-print(ty.shape)
+
 
 f = open("data/ind.ICD.ty", 'wb')
 joblib.dump(ty, f)
@@ -387,7 +382,7 @@ for i in range(len(vocab)):
 row_allx = []
 col_allx = []
 data_allx = []
-print("allx calc...")
+
 for i in tqdm(range(train_size)):
     doc_vec = np.array([0.0 for k in range(word_embeddings_dim)])
     doc_words = shuffle_doc_words_list[i]
@@ -419,7 +414,7 @@ data_allx = np.array(data_allx)
 
 allx = sp.csr_matrix(
     (data_allx, (row_allx, col_allx)), shape=(train_size + vocab_size, word_embeddings_dim))
-print(allx.shape)
+
 
 f = open("data/ind.ICD.allx", 'wb')
 joblib.dump(allx, f)
@@ -427,7 +422,7 @@ f.close()
 del allx
 
 ally = []
-print("ally calc...")
+
 for i in tqdm(range(train_size)):
 
     doc_meta = shuffle_doc_name_list[i]
@@ -445,14 +440,12 @@ for i in range(vocab_size):
 
 ally = np.array(ally)
 
-print(ally.shape)
 
 f = open("data/ind.ICD.ally", 'wb')
 joblib.dump(ally, f)
 f.close()
 del ally
 
-# print(x.shape, y.shape, tx.shape, ty.shape, allx.shape, ally.shape)
 
 # dump objects
 
@@ -464,7 +457,7 @@ Doc word heterogeneous graph
 window_size = 5000
 windows = []
 
-print("doc_words切割到window_size...")
+
 for doc_words in tqdm(shuffle_doc_words_list):
     words_list = []
     words = re.sub(r"[^A-Za-z]"," ",doc_words)
@@ -484,8 +477,6 @@ for doc_words in tqdm(shuffle_doc_words_list):
             windows.append(window)
             # print(window)
 
-# 单词计数
-print("单词计数...")
 word_window_freq = {}
 for window in tqdm(windows):
     appeared = set()
@@ -499,7 +490,6 @@ for window in tqdm(windows):
         appeared.add(window[i])
 
 
-print("单词i和单词j的组合计数...")
 word_pair_count = {}
 for window in tqdm(windows):
     for i in range(1, len(window)):
@@ -529,7 +519,7 @@ weight = []
 # pmi as weights
 
 num_window = len(windows)
-print("计算pmi...")
+
 for key in tqdm(word_pair_count):
     temp = key.split(',')
     i = int(temp[0])
@@ -546,10 +536,6 @@ for key in tqdm(word_pair_count):
     weight.append(pmi)
 
 
-# word vector cosine similarity as weights
-
-# 判断分析词向量等用向量表征的语言单位之间的语义关系
-print("判断分析词向量等用向量表征的语言单位之间的语义关系...")
 for i in tqdm(range(vocab_size)):
     for j in range(vocab_size):
         if vocab[i] in word_vector_map and vocab[j] in word_vector_map:
@@ -579,8 +565,7 @@ for doc_id in tqdm(range(len(shuffle_doc_words_list))):
             doc_word_freq[doc_word_str] += 1
         else:
             doc_word_freq[doc_word_str] = 1
-# 计算idf
-print("word and doc idf calc ...")
+
 for i in tqdm(range(len(shuffle_doc_words_list))):
     doc_words = shuffle_doc_words_list[i]
     words = re.sub(r"[^A-Za-z]"," ",doc_words)
@@ -612,4 +597,3 @@ adj = sp.csr_matrix(
 f = open("data/ind.ICD.adj", 'wb')
 joblib.dump(adj, f)
 f.close()
-exit("game over")
