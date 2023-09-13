@@ -17,7 +17,7 @@ from tqdm import tqdm
 word_embeddings_dim = 300
 word_vector_map = {}
 
-# shulffing
+
 doc_name_list = []
 doc_train_list = []
 doc_test_list = []
@@ -33,11 +33,9 @@ for index in range(len(doc_name_list)):
     if index/len(doc_name_list) <= 0.9:
         train_test_index = index
 
-# print(doc_content_list)
 
 train_ids = list(range(train_test_index))
 
-# print(train_ids)
 random.shuffle(train_ids)
 
 # partial labeled data
@@ -59,8 +57,6 @@ f.close()
 
 
 ids = train_ids + test_ids
-# print(ids)
-# print(len(ids))
 
 
 shuffle_doc_name_list = []
@@ -91,7 +87,8 @@ ICD_code_str = '\n'.join(ICD_code_list)
 f = open('data/corpus/ICD_code.txt', 'w')
 f.write(ICD_code_str)
 f.close()
-# build vocab
+
+
 word_freq = {}
 word_set = set()
 
@@ -151,11 +148,6 @@ f = open('data/corpus/ICD_vocab.txt', 'w')
 f.write(vocab_str)
 f.close()
 
-
-'''
-Word definitions begin
-'''
-
 definitions = []
 
 for word in vocab:
@@ -170,7 +162,6 @@ for word in vocab:
     definitions.append(word_des)
 
 string = '\n'.join(definitions)
-
 
 f = open('data/corpus/ICD_vocab_def.txt', 'w')
 f.write(string)
@@ -225,11 +216,6 @@ word_embeddings_dim = len(embd[0])
 
 
 
-'''
-Word definitions end
-'''
-
-# label list
 label_set = set()
 for doc_meta in shuffle_doc_name_list:
     label_set.add(doc_meta)
@@ -240,13 +226,10 @@ f = open('data/corpus/ICD_labels.txt', 'w')
 f.write(label_list_str)
 f.close()
 
-# x: feature vectors of training docs, no initial features
-# slect 90% training set
+
 train_size = len(train_ids)
 val_size = int(0.1 * train_size)
 real_train_size = train_size - val_size  # - int(0.5 * train_size)
-# different training rates
-# tx: feature vectors of test docs, no initial features
 test_size = len(test_ids)
 
 real_train_doc_names = shuffle_doc_name_list[:real_train_size]
@@ -260,7 +243,7 @@ f.close()
 row_x = []
 col_x = []
 data_x = []
-print("x calc...")
+
 for i in tqdm(range(real_train_size)):
     doc_vec = np.array([0.0 for k in range(word_embeddings_dim)])
     doc_words = shuffle_doc_words_list[i]
@@ -282,11 +265,9 @@ for i in tqdm(range(real_train_size)):
         # np.random.uniform(-0.25, 0.25)
         data_x.append(doc_vec[j] / doc_len)  # doc_vec[j]/ doc_len
 
-# x = sp.csr_matrix((real_train_size, word_embeddings_dim), dtype=np.float32)
 x = sp.csr_matrix((data_x, (row_x, col_x)), shape=(
     real_train_size, word_embeddings_dim))
 
-print(x.shape)
 
 f = open("data/ind.ICD.x", 'wb')
 joblib.dump(x, f)
@@ -294,7 +275,7 @@ f.close()
 del x
 
 y = []
-print("y calc...")
+
 for i in tqdm(range(real_train_size)):
     doc_meta = shuffle_doc_name_list[i]
     codes = doc_meta.split(';')
@@ -305,7 +286,6 @@ for i in tqdm(range(real_train_size)):
     y.append(one_hot)
 y = np.array(y)
 
-print(y.shape)
 
 f = open("data/ind.ICD.y", 'wb')
 joblib.dump(y, f)
@@ -337,7 +317,6 @@ for i in tqdm(range(test_size)):
         # np.random.uniform(-0.25, 0.25)
         data_tx.append(doc_vec[j] / doc_len)  # doc_vec[j] / doc_len
 
-# tx = sp.csr_matrix((test_size, word_embeddings_dim), dtype=np.float32)
 tx = sp.csr_matrix((data_tx, (row_tx, col_tx)),
                    shape=(test_size, word_embeddings_dim))
 
@@ -365,10 +344,6 @@ f = open("data/ind.ICD.ty", 'wb')
 joblib.dump(ty, f)
 f.close()
 del ty
-
-# allx: the the feature vectors of both labeled and unlabeled training instances
-# (a superset of x)
-# unlabeled training instances -> words
 
 word_vectors = np.random.uniform(-0.01, 0.01,
                                  (vocab_size, word_embeddings_dim))
@@ -433,7 +408,6 @@ for i in tqdm(range(train_size)):
         one_hot[label_index] = 1
     ally.append(one_hot)
 
-
 for i in range(vocab_size):
     one_hot = [0 for l in range(len(ICD_code_list))]
     ally.append(one_hot)
@@ -446,17 +420,8 @@ joblib.dump(ally, f)
 f.close()
 del ally
 
-
-# dump objects
-
-'''
-Doc word heterogeneous graph
-'''
-
-# word co-occurence with context windows
 window_size = 5000
 windows = []
-
 
 for doc_words in tqdm(shuffle_doc_words_list):
     words_list = []
@@ -516,7 +481,6 @@ row = []
 col = []
 weight = []
 
-# pmi as weights
 
 num_window = len(windows)
 
@@ -548,10 +512,9 @@ for i in tqdm(range(vocab_size)):
                 col.append(train_size + j)
                 weight.append(similarity)
 
-# doc word frequency
+
 doc_word_freq = {}
-# word 与 doc id 组合
-print("word 与 doc id 组合...")
+
 for doc_id in tqdm(range(len(shuffle_doc_words_list))):
     doc_words = shuffle_doc_words_list[doc_id]
     words = re.sub(r"[^A-Za-z]"," ",doc_words)
