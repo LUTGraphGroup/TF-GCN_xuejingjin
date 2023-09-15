@@ -81,7 +81,7 @@ for ICD_code_words in shuffle_doc_name_list:
     words = ICD_code_words.strip().split(";")
     for word in words:
         ICD_code_set.add(word)
-ICD_code_list = list(ICD_code_set) # 存储所有的ICD编码的列表
+ICD_code_list = list(ICD_code_set) 
 ICD_code_str = '\n'.join(ICD_code_list)
 
 f = open('data/corpus/ICD_code.txt', 'w')
@@ -505,7 +505,7 @@ for i in tqdm(range(vocab_size)):
         if vocab[i] in word_vector_map and vocab[j] in word_vector_map:
             vector_i = np.array(word_vector_map[vocab[i]])
             vector_j = np.array(word_vector_map[vocab[j]])
-            similarity = 1.0 - cosine(vector_i, vector_j) # 词向量相关性，范围[-1,1]
+            similarity = 1.0 - cosine(vector_i, vector_j)
             if similarity > 1.4: # 词向量相关性高
                 # print(vocab[i], vocab[j], similarity)
                 row.append(train_size + i)
