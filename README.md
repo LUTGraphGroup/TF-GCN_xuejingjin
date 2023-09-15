@@ -16,3 +16,9 @@ Instance the MIMIC-Ⅲ object and do preprocessing.
 mimic = MIMIC_new(path='path to mimic3')
 mimic.get_basic_data(outPath='data.csv')
 ```
+After this, we can get a file named data.csv.
+
+2.How to prepare the data class for the models.
+---
+Instance the data utils class and get the pretrained word embedding.
+```
