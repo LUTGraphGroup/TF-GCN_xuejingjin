@@ -35,3 +35,14 @@ if dataClass.classNum=50:
 4.How to train the models.
 ---
 Construct isomorphic images.
+
+5.How to do prediction
+---
+```
+model = TF-GCN(dataClass.classNum, dataClass.vector['noteEmbedding'], labDescVec, 
+                rnnHiddenSize=128, attnList=[384], 
+                embDropout=0.2, hdnDropout=0.2, device=torch.device('cuda:0'))
+model.load(path="xxx.pkl", map_location="cpu", dataClass=dataClass)
+model.to_eval_mode()
+Ypre,Y = model.calculate_y_prob_by_iterator(dataClass.one_epoch_batch_data_stream(batchSize=128, type='test', device=torch.device('cpu')))
+```
