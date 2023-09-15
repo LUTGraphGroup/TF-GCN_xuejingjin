@@ -22,3 +22,6 @@ After this, we can get a file named data.csv.
 ---
 Instance the data utils class and get the pretrained word embedding.
 ```
+
+3.How to compute ICD vectors.
+---
